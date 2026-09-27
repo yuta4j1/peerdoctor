@@ -81,11 +81,12 @@ static ZERO_LOWER_BOUND: LazyLock<Regex> = LazyLock::new(|| {
 
 #[derive(Clone)]
 pub struct VersionRange {
+    raw: String,
     alternatives: Vec<Vec<Comparator>>,
 }
 
 impl VersionRange {
-    pub(crate) fn parse(input: &str) -> Result<Self, VersionRangeParseError> {
+    pub fn parse(input: &str) -> Result<Self, VersionRangeParseError> {
         // npm は、範囲の一部に読めない書き方があっても、全体が読めない場合以外は受け付ける
         let mut alternatives = Vec::new();
         for alternative in collapse_whitespace(input).split("||") {
@@ -114,7 +115,14 @@ impl VersionRange {
             }
         }
 
-        Ok(Self { alternatives })
+        Ok(Self {
+            raw: input.to_string(),
+            alternatives,
+        })
+    }
+
+    pub fn as_str(&self) -> &str {
+        &self.raw
     }
 
     pub(crate) fn satisfies(&self, version: &Version) -> bool {

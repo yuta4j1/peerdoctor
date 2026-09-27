@@ -10,8 +10,8 @@ mod range;
 )]
 mod version;
 
-pub use range::VersionRange;
-pub use version::Version;
+pub use range::{VersionRange, VersionRangeParseError};
+pub use version::{Version, VersionParseError};
 
 use regex::Regex;
 

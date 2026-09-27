@@ -22,7 +22,7 @@ pub struct Version {
 }
 
 impl Version {
-    pub(crate) fn parse(input: &str) -> Result<Self, VersionParseError> {
+    pub fn parse(input: &str) -> Result<Self, VersionParseError> {
         // npm は文字列の長さを UTF-16 のコード単位で数える
         if input.encode_utf16().count() > MAX_LENGTH {
             return Err(VersionParseError::new(
