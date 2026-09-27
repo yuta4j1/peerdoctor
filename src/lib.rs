@@ -14,7 +14,7 @@ pub use candidates::{Candidates, Resolution};
 pub use check::{CheckError, Report, check};
 pub use package_instance::{PackageInstance, PeerRequirement, PeerSpec};
 pub use project::{Lockfile, LockfileError, Overrides, Project, Unsupported};
-pub use registry::{Packument, Registry, RegistryError};
+pub use registry::{HttpRegistry, Packument, Registry, RegistryError};
 pub use target_package::{TargetPackage, TargetSpecError};
 pub use unverified::{Unverified, UnverifiedReason};
 pub use version::{Version, VersionParseError, VersionRange, VersionRangeParseError};

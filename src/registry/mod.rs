@@ -1,5 +1,8 @@
 #[cfg(test)]
 pub(crate) mod fixture;
+mod http;
+
+pub use http::HttpRegistry;
 
 use std::collections::BTreeMap;
 
