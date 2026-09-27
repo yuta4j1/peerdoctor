@@ -1,0 +1,12 @@
+{
+  "name": "fixture-basic",
+  "version": "0.0.0",
+  "private": true,
+  "dependencies": {
+    "next": "15.3.0",
+    "react": "18.2.0",
+    "plugin-a": "2.1.0",
+    "plugin-b": "3.0.0",
+    "plugin-c": "1.0.0"
+  }
+}
