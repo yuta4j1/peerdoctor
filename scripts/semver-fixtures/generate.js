@@ -16,6 +16,7 @@
 const fs = require('fs')
 const path = require('path')
 const semver = require('semver')
+const Comparator = require('semver/classes/comparator')
 const constants = require('semver/internal/constants')
 
 const SEMVER_VERSION = require('semver/package.json').version
@@ -84,6 +85,19 @@ const EDGE_COMPARE_VERSIONS = [
   '1.2.3-9007199254740990', '1.2.3-9007199254740993', '1.2.3-9007199254740994',
   '1.2.3-99999999999999999999',
   '1.2.3', '1.2.3+build', 'v1.2.3', '1.2.4',
+]
+
+// 1つの条件（Comparator）として読む入力。範囲を展開したあとに出てくる条件は、
+// ranges.json の入力から自動で集めるので、ここには境界のケースだけを書く
+const EDGE_COMPARATORS = [
+  '', '>=1.2.3', '>1.2.3', '<1.2.3', '<=1.2.3', '=1.2.3', '1.2.3',
+  // 空白。U+FEFF は JS では空白、U+0085 は空白ではない
+  '>= 1.2.3', ' >= 1.2.3 ', '>=\t1.2.3', '>=﻿1.2.3', '>=\u00851.2.3',
+  // loose モード特有の書き方
+  'v1.2.3', '=v1.2.3', '>=v1.2.3', '>= v 1.2.3', '>=1.2.3beta', '<1.2.3-0',
+  // 条件1つとしては不正なもの（範囲としてなら読めるものを含む）
+  '>', '>=', '<>1.2.3', '>==1.2.3', '=== 1.2.3', '~1.2.3', '^1.2.3', '1.2', '1.x', '*',
+  'abc', '>=1.2.3 <2.0.0', '>=9007199254740992.0.0',
 ]
 
 // 公式テストデータ（`module.exports = [...]` の JS ファイル）を読み込む。
@@ -167,6 +181,29 @@ async function main () {
     input,
     normalized: semver.validRange(input, LOOSE),
   })))
+
+  // comparators.json: 1つの条件として読めるか、読めたら正規化した形（value）と、
+  // 境界のバージョンのうちどれを満たすか（matches）、満たさないか（rejects）
+  const comparatorVersions = uniqueBy([...EDGE_VERSIONS, ...EDGE_COMPARE_VERSIONS], (v) => v)
+  const comparatorInputs = uniqueBy([
+    ...EDGE_COMPARATORS,
+    ...rangeInputs.filter(isRange)
+      .flatMap((range) => new semver.Range(range, LOOSE).set.flat().map((c) => c.value)),
+  ], (input) => input)
+  writeJson('comparators.json', comparatorInputs.map((input) => {
+    let comparator
+    try {
+      comparator = new Comparator(input, LOOSE)
+    } catch {
+      return { input, value: null }
+    }
+    return {
+      input,
+      value: comparator.value,
+      matches: comparatorVersions.filter((version) => comparator.test(version)),
+      rejects: comparatorVersions.filter((version) => !comparator.test(version)),
+    }
+  }))
 
   // compare.json: 2つのバージョンの大小（a < b なら -1、同じなら 0、a > b なら 1）。
   // 公式データは「1つ目の方が大きい（または等しい）」組だけなので、逆向きの組も加える

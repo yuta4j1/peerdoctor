@@ -19,6 +19,8 @@ npm が peer を含む依存の判定で semver を呼ぶときと同じ条件
   - `EDGE_VERSION_INPUTS` … バージョンの読み取りの境界（JS と Rust で扱いが違う空白、
     先頭のゼロ、大きな数、ASCII 以外の数字、長さ）
   - `EDGE_COMPARE_VERSIONS` … 大小比較の境界。総当たり（両方向）で `compare.json` に入れる
+  - `EDGE_COMPARATORS` … 1つの条件の読み取りの境界。`comparators.json` には、これに加えて
+    `ranges.json` の範囲を JS 版で読んだときに展開されて出てくる条件も入れる
 
 `compare.json` には、公式データの組の逆向きも入れている（公式データは「1つ目の方が大きい」
 組だけなので、そのままだと片方向の比較しか確かめられない）。
@@ -29,6 +31,7 @@ npm が peer を含む依存の判定で semver を呼ぶときと同じ条件
 |---|---|---|
 | `versions.json` | `{ input, normalized }` | `semver.valid(input, { loose: true })`。バージョンとして読めなければ `null` |
 | `ranges.json` | `{ input, normalized }` | `semver.validRange(input, { loose: true })`。範囲として読めなければ `null` |
+| `comparators.json` | `{ input, value, matches, rejects }` | `new Comparator(input, { loose: true })` の `value`（読めなければ `null`）。`matches` / `rejects` は `EDGE_VERSIONS` と `EDGE_COMPARE_VERSIONS` のうち、`test()` が `true` / `false` になるもの |
 | `compare.json` | `{ a, b, expected }` | `semver.compare(a, b, { loose: true })`。`a < b` なら -1、同じなら 0、`a > b` なら 1 |
 | `satisfies.json` | `{ range, version, expected }` | `semver.satisfies(version, range, { loose: true })`。範囲・バージョンとも読めるものだけ |
 

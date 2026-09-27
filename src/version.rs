@@ -41,18 +41,32 @@ const NUMERIC_IDENTIFIER_LOOSE: &str = "[0-9]+";
 const NON_NUMERIC_IDENTIFIER: &str = "[0-9]*[a-zA-Z-][a-zA-Z0-9-]*";
 const BUILD_IDENTIFIER: &str = "[a-zA-Z0-9-]+";
 
-// re.js の LOOSE。キャプチャは 1〜3 が major / minor / patch、4 が prerelease、5 がビルドメタデータ
-static LOOSE_VERSION: LazyLock<Regex> = LazyLock::new(|| {
+// re.js の LOOSEPLAIN（前後の ^ と $ が無い、バージョン部分だけの形）。
+// キャプチャは 1〜3 が major / minor / patch、4 が prerelease、5 がビルドメタデータ
+fn loose_plain() -> String {
     let main = format!(
         r"({NUMERIC_IDENTIFIER_LOOSE})\.({NUMERIC_IDENTIFIER_LOOSE})\.({NUMERIC_IDENTIFIER_LOOSE})"
     );
     let prerelease_identifier = format!("(?:{NON_NUMERIC_IDENTIFIER}|{NUMERIC_IDENTIFIER_LOOSE})");
     let prerelease = format!(r"(?:-?({prerelease_identifier}(?:\.{prerelease_identifier})*))");
     let build = format!(r"(?:\+({BUILD_IDENTIFIER}(?:\.{BUILD_IDENTIFIER})*))");
+    format!("[v={JS_WHITESPACE}]*{main}{prerelease}?{build}?")
+}
+
+// re.js の LOOSE
+static LOOSE_VERSION: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(&format!("^{}$", loose_plain())).expect("LOOSE_VERSION は正しい正規表現")
+});
+
+// re.js の COMPARATORLOOSE。キャプチャは 1 が演算子、2 がバージョン部分。
+// 空文字にも一致する（`|^$`）。JS 版は空白をまとめてから一致を見るので、
+// 演算子の後ろの空白は多くても1つ（JS 版の safeRe も `\s*` を `\s{0,1}` に置き換えている）
+static COMPARATOR_LOOSE: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(&format!(
-        "^[v={JS_WHITESPACE}]*{main}{prerelease}?{build}?$"
+        "^((?:<|>)?=?)[{JS_WHITESPACE}]{{0,1}}({})$|^$",
+        loose_plain()
     ))
-    .expect("LOOSE_VERSION は正しい正規表現")
+    .expect("COMPARATOR_LOOSE は正しい正規表現")
 });
 
 // ビルドメタデータ（`+build.5`）は読み取るが、比較にも表示にも使わないので持たない（JS 版と同じ扱い）
@@ -237,6 +251,95 @@ impl VersionParseError {
     }
 }
 
+// node-semver の Comparator（loose モード）。`>=1.2.3` のような、演算子とバージョンの組を1つ表す。
+// 範囲（VersionRange）を組み立てる部品
+enum Comparator {
+    // 空の条件。どのバージョンでも満たす（JS 版の ANY）
+    Any,
+    Constraint {
+        operator: Operator,
+        version: Version,
+    },
+}
+
+enum Operator {
+    Less,
+    LessOrEqual,
+    Greater,
+    GreaterOrEqual,
+    // JS 版では `=` も演算子なしも、これになる
+    Equal,
+}
+
+impl Comparator {
+    // 読めなければ None（JS 版は例外を投げる）
+    fn parse(input: &str) -> Option<Self> {
+        // JS 版は、前後の空白を取り、連続する空白を1つにまとめてから読む
+        let normalized = input
+            .split(is_js_whitespace)
+            .filter(|part| !part.is_empty())
+            .collect::<Vec<_>>()
+            .join(" ");
+        let captures = COMPARATOR_LOOSE.captures(&normalized)?;
+
+        // 空文字に一致した（バージョン部分が無い）なら、どのバージョンでも満たす
+        let Some(version) = captures.get(2) else {
+            return Some(Self::Any);
+        };
+        let operator = match captures.get(1).map_or("", |matched| matched.as_str()) {
+            "<" => Operator::Less,
+            "<=" => Operator::LessOrEqual,
+            ">" => Operator::Greater,
+            ">=" => Operator::GreaterOrEqual,
+            // 残りは "" と "="（正規表現の形から、これ以外は来ない）
+            _ => Operator::Equal,
+        };
+        let version = Version::parse(version.as_str()).ok()?;
+        Some(Self::Constraint { operator, version })
+    }
+
+    // node-semver の Comparator#test
+    fn matches(&self, version: &Version) -> bool {
+        let Self::Constraint {
+            operator,
+            version: bound,
+        } = self
+        else {
+            return true;
+        };
+        let ordering = version.cmp(bound);
+        match operator {
+            Operator::Less => ordering == Ordering::Less,
+            Operator::LessOrEqual => ordering != Ordering::Greater,
+            Operator::Greater => ordering == Ordering::Greater,
+            Operator::GreaterOrEqual => ordering != Ordering::Less,
+            Operator::Equal => ordering == Ordering::Equal,
+        }
+    }
+}
+
+// node-semver の Comparator#value（`>=1.2.3` のような正規化した形。空の条件は空文字）
+impl fmt::Display for Comparator {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Any => Ok(()),
+            Self::Constraint { operator, version } => write!(f, "{operator}{version}"),
+        }
+    }
+}
+
+impl fmt::Display for Operator {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(match self {
+            Self::Less => "<",
+            Self::LessOrEqual => "<=",
+            Self::Greater => ">",
+            Self::GreaterOrEqual => ">=",
+            Self::Equal => "",
+        })
+    }
+}
+
 #[derive(Clone)]
 pub struct VersionRange(nodejs_semver::Range);
 
@@ -292,9 +395,21 @@ mod tests {
     // 作り方は tests/fixtures/semver/README.md
     const VERSIONS: &str = include_str!("../tests/fixtures/semver/versions.json");
     const COMPARE: &str = include_str!("../tests/fixtures/semver/compare.json");
+    const COMPARATORS: &str = include_str!("../tests/fixtures/semver/comparators.json");
 
     fn load(json: &str) -> Vec<serde_json::Value> {
         serde_json::from_str(json).expect("テストデータは正しい JSON")
+    }
+
+    // 最初の1件で止めず、npm と違ったものをすべて並べて失敗させる
+    fn assert_all_match(failures: &[String], total: usize) {
+        assert!(
+            failures.is_empty(),
+            "{} / {} 件が npm と違う:\n{}",
+            failures.len(),
+            total,
+            failures.join("\n")
+        );
     }
 
     #[test]
@@ -315,13 +430,7 @@ mod tests {
             }
         }
 
-        assert!(
-            failures.is_empty(),
-            "{} / {} 件が npm と違う:\n{}",
-            failures.len(),
-            entries.len(),
-            failures.join("\n")
-        );
+        assert_all_match(&failures, entries.len());
     }
 
     #[test]
@@ -348,12 +457,47 @@ mod tests {
             }
         }
 
-        assert!(
-            failures.is_empty(),
-            "{} / {} 件が npm と違う:\n{}",
-            failures.len(),
-            entries.len(),
-            failures.join("\n")
-        );
+        assert_all_match(&failures, entries.len());
+    }
+
+    #[test]
+    fn comparator_matches_npm() {
+        let entries = load(COMPARATORS);
+        let mut failures = Vec::new();
+
+        for entry in &entries {
+            let input = entry["input"].as_str().expect("input は文字列");
+
+            // 読み取り: 読めるか、読めたら正規化した形が同じか
+            let comparator = Comparator::parse(input);
+            let expected_value = entry["value"].as_str();
+            let actual_value = comparator.as_ref().map(|comparator| comparator.to_string());
+            if actual_value.as_deref() != expected_value {
+                failures.push(format!(
+                    "{input:?} の読み取り: npm = {expected_value:?}, peerdoctor = {actual_value:?}"
+                ));
+                continue;
+            }
+
+            // 判定: npm が「満たす」「満たさない」としたバージョンで、同じ答えになるか
+            let Some(comparator) = comparator else {
+                continue;
+            };
+            for (key, expected) in [("matches", true), ("rejects", false)] {
+                for version in entry[key].as_array().expect("matches / rejects は配列") {
+                    let version = version.as_str().expect("バージョンは文字列");
+                    let actual = comparator.matches(
+                        &Version::parse(version).expect("テストデータのバージョンは読める"),
+                    );
+                    if actual != expected {
+                        failures.push(format!(
+                            "{input:?} を {version:?} が満たすか: npm = {expected}, peerdoctor = {actual}"
+                        ));
+                    }
+                }
+            }
+        }
+
+        assert_all_match(&failures, entries.len());
     }
 }
