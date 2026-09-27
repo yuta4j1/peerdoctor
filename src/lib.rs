@@ -1,4 +1,5 @@
 mod blocker;
+mod candidates;
 mod check;
 mod package_instance;
 mod project;
@@ -9,6 +10,7 @@ mod unverified;
 mod version;
 
 pub use blocker::Blocker;
+pub use candidates::{Candidates, Resolution};
 pub use check::{CheckError, Report, check};
 pub use package_instance::{PackageInstance, PeerRequirement, PeerSpec};
 pub use project::{Lockfile, LockfileError, Overrides, Project, Unsupported};
