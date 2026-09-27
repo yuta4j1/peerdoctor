@@ -46,7 +46,7 @@ impl fmt::Display for PeerRequirement {
 #[derive(Clone)]
 pub struct PackageInstance {
     pub(crate) path: String,
-    name: String,
+    pub(crate) name: String,
     pub(crate) version: Version,
     pub(crate) peer_requirements: Vec<PeerRequirement>,
 }

@@ -1,8 +1,10 @@
 use std::fmt;
 
 use crate::blocker::Blocker;
+use crate::candidates::{self, Resolution};
 use crate::package_instance::PeerSpec;
 use crate::project::Lockfile;
+use crate::registry::Registry;
 use crate::resolver::resolve_peer;
 use crate::target_package::TargetPackage;
 use crate::unverified::{Unverified, UnverifiedReason};
@@ -23,6 +25,24 @@ impl Report {
 
     pub fn unverified(&self) -> &[Unverified] {
         &self.unverified
+    }
+
+    pub fn suggest(&mut self, registry: &dyn Registry) {
+        for blocker in &mut self.blockers {
+            let resolution = registry
+                .packument(&blocker.package.name)
+                .map(|packument| candidates::resolve(&packument, &self.target_name, &self.to));
+            blocker.suggestion = Some(resolution);
+        }
+    }
+
+    fn unverified_count(&self) -> usize {
+        let unfetched = self
+            .blockers
+            .iter()
+            .filter(|blocker| matches!(blocker.suggestion, Some(Err(_))))
+            .count();
+        self.unverified.len() + unfetched
     }
 }
 
@@ -50,6 +70,7 @@ pub fn check(lockfile: &Lockfile, target: &TargetPackage) -> Result<Report, Chec
                         blockers.push(Blocker {
                             package: package.clone(),
                             requirement: requirement.clone(),
+                            suggestion: None,
                         });
                     }
                 }
@@ -82,6 +103,41 @@ impl fmt::Display for Report {
         writeln!(f, "BLOCKERS ({})", self.blockers.len())?;
         for blocker in &self.blockers {
             writeln!(f, "  {blocker}")?;
+            match &blocker.suggestion {
+                None => {}
+                Some(Ok(Resolution::Satisfiable(candidates))) => {
+                    writeln!(f, "    SATISFIED BY  {}", candidates.range)?;
+                    write!(
+                        f,
+                        "                  minimum {} / newest in range {}",
+                        candidates.minimum, candidates.newest
+                    )?;
+                    if let Some(latest) = &candidates.latest {
+                        write!(f, " / latest overall {latest}")?;
+                    }
+                    writeln!(f)?;
+                    for note in &candidates.notes {
+                        writeln!(f, "                  note: {note}")?;
+                    }
+                }
+                Some(Ok(Resolution::DeadEnd { latest })) => {
+                    write!(
+                        f,
+                        "    DEAD END      no published version accepts {}@{}",
+                        self.target_name, self.to
+                    )?;
+                    if let Some(latest) = latest {
+                        write!(f, " (latest {latest})")?;
+                    }
+                    writeln!(f)?;
+                }
+                Some(Err(error)) => {
+                    writeln!(
+                        f,
+                        "    UNVERIFIED    could not check other versions: {error}"
+                    )?;
+                }
+            }
         }
         if !self.unverified.is_empty() {
             writeln!(f)?;
@@ -96,12 +152,29 @@ impl fmt::Display for Report {
         } else {
             "blockers"
         };
-        writeln!(
-            f,
-            "Summary: {} {noun}, {} unverified",
-            self.blockers.len(),
-            self.unverified.len()
-        )
+        write!(f, "Summary: {} {noun}", self.blockers.len())?;
+        if self
+            .blockers
+            .iter()
+            .any(|blocker| blocker.suggestion.is_some())
+        {
+            let satisfiable = self
+                .blockers
+                .iter()
+                .filter(|blocker| {
+                    matches!(blocker.suggestion, Some(Ok(Resolution::Satisfiable(_))))
+                })
+                .count();
+            let dead_ends = self
+                .blockers
+                .iter()
+                .filter(|blocker| {
+                    matches!(blocker.suggestion, Some(Ok(Resolution::DeadEnd { .. })))
+                })
+                .count();
+            write!(f, " ({satisfiable} satisfiable, {dead_ends} dead end)")?;
+        }
+        writeln!(f, ", {} unverified", self.unverified_count())
     }
 }
 

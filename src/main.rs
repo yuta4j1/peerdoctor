@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use std::process::ExitCode;
 
 use clap::Parser;
-use peerdoctor::{Overrides, Project, Report, TargetPackage, check};
+use peerdoctor::{HttpRegistry, Overrides, Project, Report, TargetPackage, check};
 
 /// Lists what blocks an npm project from moving a package to a given version.
 #[derive(Parser)]
@@ -15,6 +15,14 @@ struct Args {
     /// The project directory containing package-lock.json
     #[arg(long, default_value = ".")]
     project: PathBuf,
+
+    /// The registry to fetch package versions from
+    #[arg(long, default_value = "https://registry.npmjs.org")]
+    registry: String,
+
+    /// Only detect blockers, without fetching versions that would resolve them
+    #[arg(long)]
+    no_suggest: bool,
 }
 
 fn main() -> ExitCode {
@@ -48,5 +56,9 @@ fn run(args: &Args) -> Result<Report, Box<dyn Error>> {
         }
         Overrides::NotDeclared => {}
     }
-    Ok(check(project.lockfile(), &target)?)
+    let mut report = check(project.lockfile(), &target)?;
+    if !args.no_suggest {
+        report.suggest(&HttpRegistry::new(&args.registry));
+    }
+    Ok(report)
 }
