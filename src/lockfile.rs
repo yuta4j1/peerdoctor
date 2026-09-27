@@ -1,4 +1,6 @@
 use std::collections::BTreeMap;
+use std::fs;
+use std::path::Path;
 
 use serde::Deserialize;
 
@@ -10,6 +12,15 @@ pub struct Lockfile {
 }
 
 impl Lockfile {
+    pub fn read(project: &Path) -> Result<Self, LockfileError> {
+        let path = project.join("package-lock.json");
+        let json = fs::read_to_string(&path).map_err(|error| LockfileError::Unreadable {
+            path: path.display().to_string(),
+            reason: error.to_string(),
+        })?;
+        Self::parse(&json)
+    }
+
     pub fn parse(json: &str) -> Result<Self, LockfileError> {
         let raw: RawLockfile =
             serde_json::from_str(json).map_err(|error| LockfileError::InvalidJson {
@@ -111,6 +122,8 @@ fn package_name(path: &str) -> &str {
 
 #[derive(Debug, thiserror::Error)]
 pub enum LockfileError {
+    #[error("cannot read {path}: {reason}")]
+    Unreadable { path: String, reason: String },
     #[error("package-lock.json is not valid JSON: {reason}")]
     InvalidJson { reason: String },
     #[error("lockfileVersion {0} is not supported (supported: 2, 3)")]

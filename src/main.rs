@@ -1,36 +1,42 @@
-use peerdoctor::{PackageInstance, PeerRequirement, TargetPackage, Version, VersionRange, check};
+use std::error::Error;
+use std::path::PathBuf;
+use std::process::ExitCode;
 
-fn main() {
-    // ロックファイルを読む（step 2）までの、手で用意した入力
-    let target = TargetPackage::new("next", version("16.3.0"));
-    let packages = [
-        PackageInstance::new(
-            "node_modules/plugin-a",
-            "plugin-a",
-            version("2.1.0"),
-            vec![PeerRequirement::new("next", range("^14 || ^15"), false)],
-        ),
-        PackageInstance::new(
-            "node_modules/plugin-b",
-            "plugin-b",
-            version("3.0.0"),
-            vec![PeerRequirement::new("next", range(">=15 <17"), false)],
-        ),
-    ];
+use clap::Parser;
+use peerdoctor::{Lockfile, Report, TargetPackage, check};
 
-    println!("Target: {target}");
-    for package in &packages {
-        match check(package, &target) {
-            Some(blocker) => println!("BLOCKER  {blocker}"),
-            None => println!("OK       {package}"),
+/// Lists what blocks an npm project from moving a package to a given version.
+#[derive(Parser)]
+#[command(version)]
+struct Args {
+    /// The package and exact version you want, e.g. next@16.3.0
+    target: String,
+
+    /// The project directory containing package-lock.json
+    #[arg(long, default_value = ".")]
+    project: PathBuf,
+}
+
+fn main() -> ExitCode {
+    let args = Args::parse();
+    match run(&args) {
+        Ok(report) => {
+            print!("{report}");
+            if report.blockers().is_empty() {
+                ExitCode::SUCCESS
+            } else {
+                ExitCode::from(1)
+            }
+        }
+        Err(error) => {
+            eprintln!("error: {error}");
+            ExitCode::from(2)
         }
     }
 }
 
-fn version(text: &str) -> Version {
-    Version::parse(text).expect("手で用意したバージョンは読める")
-}
-
-fn range(text: &str) -> VersionRange {
-    VersionRange::parse(text).expect("手で用意した範囲は読める")
+fn run(args: &Args) -> Result<Report, Box<dyn Error>> {
+    let target = TargetPackage::parse(&args.target)?;
+    let lockfile = Lockfile::read(&args.project)?;
+    Ok(check(&lockfile, &target)?)
 }

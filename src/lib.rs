@@ -7,8 +7,8 @@ mod target_package;
 mod version;
 
 pub use blocker::Blocker;
-pub use check::check;
+pub use check::{CheckError, Report, check};
 pub use lockfile::{Lockfile, LockfileError};
 pub use package_instance::{PackageInstance, PeerRequirement};
-pub use target_package::TargetPackage;
+pub use target_package::{TargetPackage, TargetSpecError};
 pub use version::{Version, VersionParseError, VersionRange, VersionRangeParseError};

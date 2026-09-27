@@ -33,7 +33,7 @@ impl fmt::Display for PeerRequirement {
 pub struct PackageInstance {
     pub(crate) path: String,
     name: String,
-    version: Version,
+    pub(crate) version: Version,
     pub(crate) peer_requirements: Vec<PeerRequirement>,
 }
 
