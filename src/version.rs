@@ -1,8 +1,8 @@
-pub struct Version(node_semver::Version);
+pub struct Version(nodejs_semver::Version);
 
 impl Version {
     pub(crate) fn parse(input: &str) -> Result<Self, VersionParseError> {
-        let version = node_semver::Version::parse(input)
+        let version = nodejs_semver::Version::parse(input)
             .map_err(|error| VersionParseError::new(input, error))?;
         Ok(Self(version))
     }
@@ -16,7 +16,7 @@ pub struct VersionParseError {
 }
 
 impl VersionParseError {
-    fn new(input: &str, error: node_semver::SemverError) -> Self {
+    fn new(input: &str, error: nodejs_semver::SemverError) -> Self {
         Self {
             input: input.to_string(),
             reason: error.to_string(),
@@ -25,27 +25,27 @@ impl VersionParseError {
 }
 
 #[derive(Clone)]
-pub struct VersionRange(node_semver::Range);
+pub struct VersionRange(nodejs_semver::Range);
 
 impl VersionRange {
     pub(crate) fn parse(input: &str) -> Result<Self, VersionRangeParseError> {
         // npm（JS の semver）は範囲を || で区切り、各部分を個別に読む。
         // - 不正な部分が1つでもあれば、範囲全体がエラー
         // - 空の部分が1つでもあれば、範囲全体が * と同じ
-        // node-semver クレートは不正な部分や空の部分を黙って捨てたり、空をエラーにしたりするので、
+        // nodejs-semver クレートは不正な部分や、一部だけ空の部分を黙って捨てるので、
         // ここで JS 版に合わせる。
         let parts: Vec<&str> = input.split("||").map(|part| part.trim()).collect();
 
         for part in parts.iter().filter(|part| !part.is_empty()) {
-            node_semver::Range::parse(part)
+            nodejs_semver::Range::parse(part)
                 .map_err(|error| VersionRangeParseError::new(input, error))?;
         }
 
         if parts.iter().any(|part| part.is_empty()) {
-            return Ok(Self(node_semver::Range::any()));
+            return Ok(Self(nodejs_semver::Range::any()));
         }
 
-        let range = node_semver::Range::parse(input)
+        let range = nodejs_semver::Range::parse(input)
             .map_err(|error| VersionRangeParseError::new(input, error))?;
         Ok(Self(range))
     }
@@ -63,7 +63,7 @@ pub struct VersionRangeParseError {
 }
 
 impl VersionRangeParseError {
-    fn new(input: &str, error: node_semver::SemverError) -> Self {
+    fn new(input: &str, error: nodejs_semver::SemverError) -> Self {
         Self {
             input: input.to_string(),
             reason: error.to_string(),
