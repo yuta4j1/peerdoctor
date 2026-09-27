@@ -5,11 +5,13 @@ fn main() {
     let target = TargetPackage::new("next", version("16.3.0"));
     let packages = [
         PackageInstance::new(
+            "node_modules/plugin-a",
             "plugin-a",
             version("2.1.0"),
             vec![PeerRequirement::new("next", range("^14 || ^15"), false)],
         ),
         PackageInstance::new(
+            "node_modules/plugin-b",
             "plugin-b",
             version("3.0.0"),
             vec![PeerRequirement::new("next", range(">=15 <17"), false)],

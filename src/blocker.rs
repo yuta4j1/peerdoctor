@@ -9,6 +9,10 @@ pub struct Blocker {
 
 impl fmt::Display for Blocker {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}  peer {}", self.package, self.requirement)
+        write!(
+            f,
+            "{} ({})  peer {}",
+            self.package, self.package.path, self.requirement
+        )
     }
 }

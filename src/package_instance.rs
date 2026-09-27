@@ -31,17 +31,24 @@ impl fmt::Display for PeerRequirement {
 
 #[derive(Clone)]
 pub struct PackageInstance {
+    pub(crate) path: String,
     name: String,
-    pub(crate) peer_requirements: Vec<PeerRequirement>,
     version: Version,
+    pub(crate) peer_requirements: Vec<PeerRequirement>,
 }
 
 impl PackageInstance {
-    pub fn new(name: &str, version: Version, peer_requirements: Vec<PeerRequirement>) -> Self {
+    pub fn new(
+        path: &str,
+        name: &str,
+        version: Version,
+        peer_requirements: Vec<PeerRequirement>,
+    ) -> Self {
         Self {
+            path: path.to_string(),
             name: name.to_string(),
-            peer_requirements,
             version,
+            peer_requirements,
         }
     }
 }
