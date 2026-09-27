@@ -1,0 +1,45 @@
+{
+  "name": "next",
+  "dist-tags": {
+    "latest": "16.3.0"
+  },
+  "modified": "2026-01-01T00:00:00.000Z",
+  "versions": {
+    "14.2.0": {
+      "name": "next",
+      "version": "14.2.0",
+      "peerDependencies": {
+        "react": "^18"
+      },
+      "dist": {
+        "tarball": "http://localhost:4873/next/-/next-14.2.0.tgz",
+        "integrity": "sha512-pB89BpAu25pDCFQ6ReGiBa6b4ie+LFMpohxm/+vPZT4Nfi9KLzfRBg9H0JAHsHLugKvyHP1y1fFMcioLwhhwGw==",
+        "shasum": "1c5edb3b32db3dac49aa61114d46df608fb77e2a"
+      }
+    },
+    "15.3.0": {
+      "name": "next",
+      "version": "15.3.0",
+      "peerDependencies": {
+        "react": "^18 || ^19"
+      },
+      "dist": {
+        "tarball": "http://localhost:4873/next/-/next-15.3.0.tgz",
+        "integrity": "sha512-476e+db+7dPH5IENoE+QLNhhtcMox6p2xcn+XtBpIpuszegNtM5Od42qXd6xaYkxy4JUqBipTbfEnxMNrr3ztQ==",
+        "shasum": "5e8ef12c58358ecc663e188be90acdefae8c9cfd"
+      }
+    },
+    "16.3.0": {
+      "name": "next",
+      "version": "16.3.0",
+      "peerDependencies": {
+        "react": "^19"
+      },
+      "dist": {
+        "tarball": "http://localhost:4873/next/-/next-16.3.0.tgz",
+        "integrity": "sha512-9w47xsT5qPIvaRxvpIzvCKYzJI47zJqLReOvQWsIzIM8SLTdksrB67Z3QSmmjKepuHg+9G+gYu1G1GNu6Pzxxw==",
+        "shasum": "de98c71e58bda8e8d00703ea190a09d49904f7ae"
+      }
+    }
+  }
+}

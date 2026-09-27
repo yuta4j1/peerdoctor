@@ -1,0 +1,22 @@
+{
+  "name": "legacy-host",
+  "dist-tags": {
+    "latest": "1.0.0"
+  },
+  "modified": "2026-01-01T00:00:00.000Z",
+  "versions": {
+    "1.0.0": {
+      "name": "legacy-host",
+      "version": "1.0.0",
+      "dependencies": {
+        "next": "14.2.0",
+        "plugin-old": "1.0.0"
+      },
+      "dist": {
+        "tarball": "http://localhost:4873/legacy-host/-/legacy-host-1.0.0.tgz",
+        "integrity": "sha512-RSe5rcoezOhTNAn2PlRFk0jihL5rpC3AvhTsCIcsyiXvyDfCajbb9+mbmvcxW/WW5MyQ+DJ9DmKxEg7jE2CEBg==",
+        "shasum": "17fedabb1056e17f7b7d151b17c09d05f0496033"
+      }
+    }
+  }
+}

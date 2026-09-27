@@ -1,0 +1,27 @@
+{
+  "name": "react",
+  "dist-tags": {
+    "latest": "19.0.0"
+  },
+  "modified": "2026-01-01T00:00:00.000Z",
+  "versions": {
+    "18.2.0": {
+      "name": "react",
+      "version": "18.2.0",
+      "dist": {
+        "tarball": "http://localhost:4873/react/-/react-18.2.0.tgz",
+        "integrity": "sha512-hZm6gKyLiowHsu8p0TTv0mGFSwqRDqkRVRQF1OqprmTNKWxyJp6Lq0qQobkJ9TYxo46hhUJFFQm/2CCaeVG3PA==",
+        "shasum": "f62d7e99d988110f2ff8874f3bda3919a69e81dd"
+      }
+    },
+    "19.0.0": {
+      "name": "react",
+      "version": "19.0.0",
+      "dist": {
+        "tarball": "http://localhost:4873/react/-/react-19.0.0.tgz",
+        "integrity": "sha512-eTsyHsyfjFQTa3wf+jhDfqC9fIiLMCwmq/OuObdiQBuUxuYajqKERMkNDZ6IUsKP4xI1k2lm0b5RJqFSkbfzfg==",
+        "shasum": "d78767ba333fcc6d0994e434f7855bfff6371e30"
+      }
+    }
+  }
+}

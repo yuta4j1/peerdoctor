@@ -31,6 +31,7 @@ npm 11 で作成した。ポート 4873 が空いている必要がある。生�
 | `unsupported-alias/` | `npm:plugin-a@2.1.0`（エイリアス） | 同上 |
 | `unsupported-bundled/` | `bundleDependencies` を持つ `bundle-host` | 同上 |
 | `overrides/` | package.json の `overrides` | 警告して続行するか（overrides はロックファイルには記録されない） |
+| `candidates/` | `plugin-a`・`plugin-c`・`plugin-flaky`・`@acme/next-plugin` を入れた構成。各パッケージの全バージョンは `tests/fixtures/packuments/` にある | ブロッカーごとの候補の範囲（step 3） |
 | `unverified/` | `plugin-tag` が peer に `next: "latest"`（範囲ではなく dist-tag）を持つ。npm 自身が peer の衝突で止まるので `--legacy-peer-deps` で作成 | 範囲として読めない peer を unverified として報告するか |
 
 git 依存のロックファイルは、作るのに git サーバーが要るので、テストの中で JSON を手書きしている。

@@ -1,0 +1,21 @@
+{
+  "name": "plugin-old",
+  "dist-tags": {
+    "latest": "1.0.0"
+  },
+  "modified": "2026-01-01T00:00:00.000Z",
+  "versions": {
+    "1.0.0": {
+      "name": "plugin-old",
+      "version": "1.0.0",
+      "peerDependencies": {
+        "next": "^14"
+      },
+      "dist": {
+        "tarball": "http://localhost:4873/plugin-old/-/plugin-old-1.0.0.tgz",
+        "integrity": "sha512-EaSfh6OCM1I/bnua0Cnp44bbcT18GzcnE6aFfHqYaG/4NZXLERMYFvKkVRDYSYOz9XanNTnSZmKrtk121f5xAg==",
+        "shasum": "0573b6c8cb75c5a9cc6c657569b0b193eab29ba6"
+      }
+    }
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "name": "fixture-candidates",
+  "version": "0.0.0",
+  "private": true,
+  "dependencies": {
+    "next": "15.3.0",
+    "react": "18.2.0",
+    "plugin-a": "2.1.0",
+    "plugin-c": "1.0.0",
+    "plugin-flaky": "1.1.0",
+    "@acme/next-plugin": "1.0.0"
+  }
+}

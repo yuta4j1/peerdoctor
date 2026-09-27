@@ -1,0 +1,45 @@
+{
+  "name": "plugin-c",
+  "dist-tags": {
+    "latest": "1.1.0"
+  },
+  "modified": "2026-01-01T00:00:00.000Z",
+  "versions": {
+    "1.0.0": {
+      "name": "plugin-c",
+      "version": "1.0.0",
+      "peerDependencies": {
+        "next": "^15",
+        "react": "^18"
+      },
+      "peerDependenciesMeta": {
+        "react": {
+          "optional": true
+        }
+      },
+      "dist": {
+        "tarball": "http://localhost:4873/plugin-c/-/plugin-c-1.0.0.tgz",
+        "integrity": "sha512-vd+6Sqz6woZPdRGLoe4q3gCP5XU6iymXzf5V4z7axdxeXKsg09Su+ISs3UvdzjKxv2Kr7dX1/U6EuwqfeGXv2g==",
+        "shasum": "82625b79780fdf1c3c1ecc2a4e37960288c736ee"
+      }
+    },
+    "1.1.0": {
+      "name": "plugin-c",
+      "version": "1.1.0",
+      "peerDependencies": {
+        "next": "^15",
+        "react": "^18"
+      },
+      "peerDependenciesMeta": {
+        "react": {
+          "optional": true
+        }
+      },
+      "dist": {
+        "tarball": "http://localhost:4873/plugin-c/-/plugin-c-1.1.0.tgz",
+        "integrity": "sha512-7odt4Se1j7lKMBit/XdOXYN6TteDpJhpMLhC4WbJ6Q+VKGT3J70EL4uSigo2T285n9YJzdHIXMl7u6az+X3P8A==",
+        "shasum": "89dfb3e2d7356ccc6878c0fd3d43e77c1892b09b"
+      }
+    }
+  }
+}

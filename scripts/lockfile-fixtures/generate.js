@@ -1,6 +1,7 @@
 'use strict'
 
-// tests/fixtures/lockfiles/ のロックファイルを、npm に実際に作らせる。
+// tests/fixtures/lockfiles/ のロックファイルを npm に実際に作らせ、そのときにレジストリが返した
+// パッケージの情報（packument）を tests/fixtures/packuments/ に書き出す。
 //
 // パッケージは file: で入れると、ロックファイルの resolved が file: になり、peerdoctor が
 // 未対応の構成として拒否してしまう。そこで、手で定義したパッケージを返すレジストリを
@@ -18,6 +19,7 @@ const execFile = promisify(require('child_process').execFile)
 const PORT = 4873
 const REGISTRY = `http://localhost:${PORT}`
 const OUT_DIR = path.join(__dirname, '..', '..', 'tests', 'fixtures', 'lockfiles')
+const PACKUMENT_DIR = path.join(__dirname, '..', '..', 'tests', 'fixtures', 'packuments')
 
 const PACKAGES = {
   next: {
@@ -30,7 +32,16 @@ const PACKAGES = {
     '19.0.0': {},
   },
   'plugin-a': {
+    '2.0.0': { peerDependencies: { next: '^14' } },
     '2.1.0': { peerDependencies: { next: '^14 || ^15' } },
+    '2.9.0': { peerDependencies: { next: '^15' } },
+    '3.0.0': { peerDependencies: { next: '^16' } },
+    '3.0.5': { peerDependencies: { next: '^16' }, deprecated: 'contains a critical bug, use 3.1.0' },
+    '3.1.0': { peerDependencies: { next: '^16' } },
+    '3.2.1': { peerDependencies: { next: '^16' } },
+    '4.0.0-beta.1': { peerDependencies: { next: '^17' } },
+    '4.0.0': { peerDependencies: { next: '^17' } },
+    '4.1.0': { peerDependencies: { next: '^17' } },
   },
   'plugin-b': {
     '3.0.0': { peerDependencies: { next: '>=15 <17' } },
@@ -40,6 +51,16 @@ const PACKAGES = {
       peerDependencies: { next: '^15', react: '^18' },
       peerDependenciesMeta: { react: { optional: true } },
     },
+    '1.1.0': {
+      peerDependencies: { next: '^15', react: '^18' },
+      peerDependenciesMeta: { react: { optional: true } },
+    },
+  },
+  'plugin-flaky': {
+    '1.0.0': { peerDependencies: { next: '^15 || ^16' } },
+    '1.1.0': { peerDependencies: { next: '^15' } },
+    '1.2.0': { peerDependencies: { next: '^15 || ^16' } },
+    '1.3.0': { peerDependencies: { next: '^15' } },
   },
   'legacy-host': {
     '1.0.0': { dependencies: { next: '14.2.0', 'plugin-old': '1.0.0' } },
@@ -49,6 +70,8 @@ const PACKAGES = {
   },
   '@acme/next-plugin': {
     '1.0.0': { peerDependencies: { next: '^15' } },
+    '2.0.0': { peerDependencies: { next: '^16' } },
+    '3.0.0': {},
   },
   'local-tgz': {
     '1.0.0': { peerDependencies: { next: '^15' } },
@@ -137,6 +160,16 @@ const SCENARIOS = {
     lockfileVersion: 3,
     dependencies: { ...BASE_DEPENDENCIES, 'plugin-a': '2.1.0' },
     packageJson: { overrides: { react: '18.2.0' } },
+  },
+  candidates: {
+    lockfileVersion: 3,
+    dependencies: {
+      ...BASE_DEPENDENCIES,
+      'plugin-a': '2.1.0',
+      'plugin-c': '1.0.0',
+      'plugin-flaky': '1.1.0',
+      '@acme/next-plugin': '1.0.0',
+    },
   },
   // peer に dist-tag を書いたパッケージは npm 自身が peer の衝突で止まるので、peer の確認を省いて作る
   unverified: {
@@ -258,6 +291,15 @@ async function generate (workDir, tarballs, scenarioName, scenario) {
   console.log(`wrote ${scenarioName}/ (lockfileVersion ${lockfileVersion})`)
 }
 
+function writePackuments (tarballs) {
+  for (const name of Object.keys(PACKAGES)) {
+    const file = path.join(PACKUMENT_DIR, `${name}.json`)
+    fs.mkdirSync(path.dirname(file), { recursive: true })
+    fs.writeFileSync(file, JSON.stringify(packument(name, tarballs), null, 2) + '\n')
+  }
+  console.log(`wrote ${Object.keys(PACKAGES).length} packuments`)
+}
+
 async function main () {
   const workDir = fs.mkdtempSync(path.join(os.tmpdir(), 'peerdoctor-lockfiles-'))
   const tarballs = await packAll(workDir)
@@ -266,6 +308,7 @@ async function main () {
     for (const [name, scenario] of Object.entries(SCENARIOS)) {
       await generate(workDir, tarballs, name, scenario)
     }
+    writePackuments(tarballs)
   } finally {
     server.close()
     fs.rmSync(workDir, { recursive: true, force: true })

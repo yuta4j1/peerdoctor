@@ -1,0 +1,21 @@
+{
+  "name": "bundled-dep",
+  "dist-tags": {
+    "latest": "1.0.0"
+  },
+  "modified": "2026-01-01T00:00:00.000Z",
+  "versions": {
+    "1.0.0": {
+      "name": "bundled-dep",
+      "version": "1.0.0",
+      "peerDependencies": {
+        "next": "^15"
+      },
+      "dist": {
+        "tarball": "http://localhost:4873/bundled-dep/-/bundled-dep-1.0.0.tgz",
+        "integrity": "sha512-SirkIGY4boWNZfdOfGud7OCKuzfnB4rpVIjTQScr1QCaQ4XaUB1GZMwMNAPDBgMA48GP1Zt3pcbkL5IdSFl1Gg==",
+        "shasum": "865458a4a404b493656ea5af566387cbc2f70a6f"
+      }
+    }
+  }
+}

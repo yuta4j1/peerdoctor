@@ -1,0 +1,42 @@
+{
+  "name": "@acme/next-plugin",
+  "dist-tags": {
+    "latest": "3.0.0"
+  },
+  "modified": "2026-01-01T00:00:00.000Z",
+  "versions": {
+    "1.0.0": {
+      "name": "@acme/next-plugin",
+      "version": "1.0.0",
+      "peerDependencies": {
+        "next": "^15"
+      },
+      "dist": {
+        "tarball": "http://localhost:4873/@acme/next-plugin/-/next-plugin-1.0.0.tgz",
+        "integrity": "sha512-5gx/oGayPlR7AC8PbN9OU4rEpWTMfsiFXVVTM/9kLeyifezc0wStXoSGtF81I/vjC1RDXbmWWCTNrrEPi2e60w==",
+        "shasum": "36ba1edb6f3db9541e85b67f84ca6404c48798d7"
+      }
+    },
+    "2.0.0": {
+      "name": "@acme/next-plugin",
+      "version": "2.0.0",
+      "peerDependencies": {
+        "next": "^16"
+      },
+      "dist": {
+        "tarball": "http://localhost:4873/@acme/next-plugin/-/next-plugin-2.0.0.tgz",
+        "integrity": "sha512-rYkceSj8zgc/BBA0aK9MxO08s2TnFn+QQlZGS3RQx4Alo8FYeA6HPVNkVnOxKuaa1qzeLuMkoNQ2a8A5Kw60bg==",
+        "shasum": "46d62a9e083a8a04962cc79e67bc4056e8bdeb69"
+      }
+    },
+    "3.0.0": {
+      "name": "@acme/next-plugin",
+      "version": "3.0.0",
+      "dist": {
+        "tarball": "http://localhost:4873/@acme/next-plugin/-/next-plugin-3.0.0.tgz",
+        "integrity": "sha512-X35YpLbqBDXRaDdwerxlaK8SE0bgJJ5lgNtakCguxerMGPO20R576D+1StAl67vqCxt0JiV14pWHI+OMBnjTWg==",
+        "shasum": "1e036c3b8c4bc7baf5ee1d4371bfc010e7defea6"
+      }
+    }
+  }
+}

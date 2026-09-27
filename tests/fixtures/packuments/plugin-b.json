@@ -1,0 +1,21 @@
+{
+  "name": "plugin-b",
+  "dist-tags": {
+    "latest": "3.0.0"
+  },
+  "modified": "2026-01-01T00:00:00.000Z",
+  "versions": {
+    "3.0.0": {
+      "name": "plugin-b",
+      "version": "3.0.0",
+      "peerDependencies": {
+        "next": ">=15 <17"
+      },
+      "dist": {
+        "tarball": "http://localhost:4873/plugin-b/-/plugin-b-3.0.0.tgz",
+        "integrity": "sha512-sS2Rvcv2y/1c5K4ct7RHjo+DzlGDFikiMr4rv3JjXJbsPwil5KBCkqPV2THj/qjdI7LETNymvIoYN4Ag8HECAQ==",
+        "shasum": "98ee57461d68390cf94d58dc92dccb581ae63cc9"
+      }
+    }
+  }
+}

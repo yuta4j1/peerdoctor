@@ -1,0 +1,130 @@
+{
+  "name": "plugin-a",
+  "dist-tags": {
+    "latest": "4.1.0"
+  },
+  "modified": "2026-01-01T00:00:00.000Z",
+  "versions": {
+    "2.0.0": {
+      "name": "plugin-a",
+      "version": "2.0.0",
+      "peerDependencies": {
+        "next": "^14"
+      },
+      "dist": {
+        "tarball": "http://localhost:4873/plugin-a/-/plugin-a-2.0.0.tgz",
+        "integrity": "sha512-DZsIKqjxnC2sP36s1eZAYcqQMn6OTgM5Is/IC+4K813ooX4vrEcrzebVaFke0cphIDzo6rDfVUfwIqfUTZ+rbg==",
+        "shasum": "6357e723b6406c42e3fca0b345d750313944845a"
+      }
+    },
+    "2.1.0": {
+      "name": "plugin-a",
+      "version": "2.1.0",
+      "peerDependencies": {
+        "next": "^14 || ^15"
+      },
+      "dist": {
+        "tarball": "http://localhost:4873/plugin-a/-/plugin-a-2.1.0.tgz",
+        "integrity": "sha512-GCuufFCtbAfVnC6QejM4w0Kz5Qc0UR91to0ONhF18hrwH4TOE8Oqrnv4bhZn77XmTxrBUT96r6eqIn8akVnfaw==",
+        "shasum": "d63d7a5a14a30dde8ddbad578f6b9044115c2e79"
+      }
+    },
+    "2.9.0": {
+      "name": "plugin-a",
+      "version": "2.9.0",
+      "peerDependencies": {
+        "next": "^15"
+      },
+      "dist": {
+        "tarball": "http://localhost:4873/plugin-a/-/plugin-a-2.9.0.tgz",
+        "integrity": "sha512-YG9DJoYu+1kS55aOxTZV14Mez4Ned+VhH17BtOy+lh9vaeywRqmh5mC+bRfy05J1PY8ZnGOous1Ou51QGVhpFw==",
+        "shasum": "ed4fdab5da03b62afaa9f1f7f4763865da94a480"
+      }
+    },
+    "3.0.0": {
+      "name": "plugin-a",
+      "version": "3.0.0",
+      "peerDependencies": {
+        "next": "^16"
+      },
+      "dist": {
+        "tarball": "http://localhost:4873/plugin-a/-/plugin-a-3.0.0.tgz",
+        "integrity": "sha512-ptZR1Bsv6YwXtAKfRpfHThn3+TMYl3XIfEj4UOmiN9O+jhYdqOEmWu3TjdOoWEgIvqm0F0QSenkGHBcUKperaw==",
+        "shasum": "4804eb7d7aa89de7539b54fc033793ca470f498f"
+      }
+    },
+    "3.0.5": {
+      "name": "plugin-a",
+      "version": "3.0.5",
+      "peerDependencies": {
+        "next": "^16"
+      },
+      "deprecated": "contains a critical bug, use 3.1.0",
+      "dist": {
+        "tarball": "http://localhost:4873/plugin-a/-/plugin-a-3.0.5.tgz",
+        "integrity": "sha512-hLXXKG9BAeV9xzbjptDimwcDJazjaVb1Ci5WiuTPxeVFMouMBYQiOCTgQQAFNJs1WDpZIZYfzmJ3WBxnCTY/hQ==",
+        "shasum": "95eec8936c684ad4ea520771a42181421f26fb6f"
+      }
+    },
+    "3.1.0": {
+      "name": "plugin-a",
+      "version": "3.1.0",
+      "peerDependencies": {
+        "next": "^16"
+      },
+      "dist": {
+        "tarball": "http://localhost:4873/plugin-a/-/plugin-a-3.1.0.tgz",
+        "integrity": "sha512-0cPXebvcuA8n2u2PlMRpWjPsWh5YhyjmyG3XrjMIp6457lxZQpsNSVBmsyZAQHsl1Uv1nW8/3jzBiajVwfyEsQ==",
+        "shasum": "8fe4f66b273065479d5975c3044d3e0e628c7390"
+      }
+    },
+    "3.2.1": {
+      "name": "plugin-a",
+      "version": "3.2.1",
+      "peerDependencies": {
+        "next": "^16"
+      },
+      "dist": {
+        "tarball": "http://localhost:4873/plugin-a/-/plugin-a-3.2.1.tgz",
+        "integrity": "sha512-kXLBBWj8+fbg4CdgtgW3E+n7bN9C4htu+NJQJgfGvbts1klNpid/FHOlKUco42OKrnXz224NiimjDpyffucXeQ==",
+        "shasum": "5088ef55b9193fbd1145281fa8df70cac64a9cd2"
+      }
+    },
+    "4.0.0-beta.1": {
+      "name": "plugin-a",
+      "version": "4.0.0-beta.1",
+      "peerDependencies": {
+        "next": "^17"
+      },
+      "dist": {
+        "tarball": "http://localhost:4873/plugin-a/-/plugin-a-4.0.0-beta.1.tgz",
+        "integrity": "sha512-qpayui0Z/wx93W5WGkXvi2J+7osahMFlGt2kMYpXuZTB93/CB3W/jpoiIuRV7OXuZzcijgz3auFmAQdcZKdNVQ==",
+        "shasum": "6d47e08bad6d6c36cea911cf79426c80376bc021"
+      }
+    },
+    "4.0.0": {
+      "name": "plugin-a",
+      "version": "4.0.0",
+      "peerDependencies": {
+        "next": "^17"
+      },
+      "dist": {
+        "tarball": "http://localhost:4873/plugin-a/-/plugin-a-4.0.0.tgz",
+        "integrity": "sha512-/a1AQdNJT7XivLSJa2BRLlY9vfep2rkIi5/EKl5gC3HHmIHe0sGnQ9TqYiV51FTQQtaz2gcvRm3/vUlb/sLhqA==",
+        "shasum": "8ec8d34286c5db3a6d1aa3ebb264c8569122a701"
+      }
+    },
+    "4.1.0": {
+      "name": "plugin-a",
+      "version": "4.1.0",
+      "peerDependencies": {
+        "next": "^17"
+      },
+      "dist": {
+        "tarball": "http://localhost:4873/plugin-a/-/plugin-a-4.1.0.tgz",
+        "integrity": "sha512-Nc7KXhi56AjhJYQIVXoI6nMBhNeMSbUWzAFqOj7y4BhXxz9E0Ds450S9IyGXgL65iAT+SvWde5gwICfb8ZDldg==",
+        "shasum": "feaa08668ee3e4949e5cb9e981b777eed59d5f63"
+      }
+    }
+  }
+}

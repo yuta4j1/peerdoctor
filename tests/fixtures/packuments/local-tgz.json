@@ -1,0 +1,21 @@
+{
+  "name": "local-tgz",
+  "dist-tags": {
+    "latest": "1.0.0"
+  },
+  "modified": "2026-01-01T00:00:00.000Z",
+  "versions": {
+    "1.0.0": {
+      "name": "local-tgz",
+      "version": "1.0.0",
+      "peerDependencies": {
+        "next": "^15"
+      },
+      "dist": {
+        "tarball": "http://localhost:4873/local-tgz/-/local-tgz-1.0.0.tgz",
+        "integrity": "sha512-2XSgMoGS5zp1xfImmAFsb+3VdslP8gTkinRV7MEASa1iQkVfDId5yIQQapXpUhglZd72J17yi2051QrYIVEWOA==",
+        "shasum": "89c9944eb5b3c6329983a963b81dea0d80a48c09"
+      }
+    }
+  }
+}
