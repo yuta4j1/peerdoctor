@@ -14,8 +14,14 @@ npm が peer を含む依存の判定で semver を呼ぶときと同じ条件
   `range-parse`、`valid-versions`、`invalid-versions`、`comparisons`、`equality`）。
   各データに付いているオプションは使わず、範囲とバージョンの文字列だけを入力として使う。
   文字列以外の入力（正規表現など）は対象外
-- peerdoctor の調査で見つけた境界のケース（`scripts/semver-fixtures/generate.js` の
-  `EDGE_RANGES` と `EDGE_VERSIONS`）。範囲 × バージョンの総当たり
+- peerdoctor の調査で見つけた境界のケース（`scripts/semver-fixtures/generate.js` の定数）
+  - `EDGE_RANGES` × `EDGE_VERSIONS` … 範囲とバージョンの総当たり（`satisfies.json`）
+  - `EDGE_VERSION_INPUTS` … バージョンの読み取りの境界（JS と Rust で扱いが違う空白、
+    先頭のゼロ、大きな数、ASCII 以外の数字、長さ）
+  - `EDGE_COMPARE_VERSIONS` … 大小比較の境界。総当たり（両方向）で `compare.json` に入れる
+
+`compare.json` には、公式データの組の逆向きも入れている（公式データは「1つ目の方が大きい」
+組だけなので、そのままだと片方向の比較しか確かめられない）。
 
 ## ファイル
 

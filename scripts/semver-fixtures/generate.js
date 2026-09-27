@@ -57,6 +57,35 @@ const EDGE_VERSIONS = [
   '14.2.0', '15.3.0', '16.0.0', '16.14.0', '17.0.2', '18.2.0', '19.0.0',
 ]
 
+// バージョンの読み取りだけを確かめる入力（範囲との総当たりには使わない）
+const EDGE_VERSION_INPUTS = [
+  // 空白。U+FEFF は JS では空白だが Rust では空白ではない。U+0085 はその逆
+  ' 1.2.3 ', '\t1.2.3\n', ' 1.2.3', '﻿1.2.3', '1.2.3﻿', '\u00851.2.3', '1.2.3\u0085',
+  // loose モード特有の接頭辞
+  'v 1.2.3', '=1.2.3', '== 1.2.3', 'v=1.2.3', '=v1.2.3', 'vv1.2.3',
+  // 先頭のゼロ
+  '01.02.03', '1.2.3-01', '1.2.3-0001.2', '1.2.3-0a',
+  // 大きな数（JS の安全な整数 9007199254740991 の前後）
+  '9007199254740991.0.0', '9007199254740992.0.0', '0.0.9007199254740991',
+  '1.2.3-9007199254740990', '1.2.3-9007199254740991', '1.2.3-9007199254740993',
+  // 全角数字・アラビア数字（JS の \d は 0-9 だけ）
+  '１.２.３', '1.2.٣', '1.2.3-٣', '1.2.3-beta.٣',
+  // 長さの境界（256 文字まで）
+  '1.2.3-' + 'a'.repeat(250), '1.2.3-' + 'a'.repeat(251),
+  // 長さは UTF-16 の単位で数える（U+3000 は UTF-16 で1単位、UTF-8 で3バイト）
+  '　'.repeat(100) + '1.2.3', '　'.repeat(252) + '1.2.3',
+]
+
+// 大小比較の境界になるバージョン。総当たり（両方向）で比べる
+const EDGE_COMPARE_VERSIONS = [
+  '1.2.3-alpha', '1.2.3-alpha.1', '1.2.3-alpha.1.2', '1.2.3-alpha.beta',
+  '1.2.3-beta', '1.2.3-beta.2', '1.2.3-beta.11', '1.2.3-rc.1',
+  '1.2.3-0', '1.2.3-1', '1.2.3-01', '1.2.3-a1', '1.2.3-1a',
+  '1.2.3-9007199254740990', '1.2.3-9007199254740993', '1.2.3-9007199254740994',
+  '1.2.3-99999999999999999999',
+  '1.2.3', '1.2.3+build', 'v1.2.3', '1.2.4',
+]
+
 // 公式テストデータ（`module.exports = [...]` の JS ファイル）を読み込む。
 // 中で使われている require は、semver の内部定数の読み込みだけに限定する。
 async function loadOfficialFixture (name) {
@@ -122,7 +151,7 @@ async function main () {
     ...stringsAt(validVersions, 0), ...stringsAt(invalidVersions, 0),
     ...stringsAt(comparisons, 0), ...stringsAt(comparisons, 1),
     ...stringsAt(equality, 0), ...stringsAt(equality, 1),
-    ...EDGE_VERSIONS,
+    ...EDGE_VERSIONS, ...EDGE_VERSION_INPUTS, ...EDGE_COMPARE_VERSIONS,
   ], (input) => input)
   writeJson('versions.json', versionInputs.map((input) => ({
     input,
@@ -139,8 +168,12 @@ async function main () {
     normalized: semver.validRange(input, LOOSE),
   })))
 
-  // compare.json: 2つのバージョンの大小（a < b なら -1、同じなら 0、a > b なら 1）
-  const comparePairs = [...comparisons, ...equality]
+  // compare.json: 2つのバージョンの大小（a < b なら -1、同じなら 0、a > b なら 1）。
+  // 公式データは「1つ目の方が大きい（または等しい）」組だけなので、逆向きの組も加える
+  const comparePairs = [
+    ...[...comparisons, ...equality].flatMap(([a, b]) => [[a, b], [b, a]]),
+    ...EDGE_COMPARE_VERSIONS.flatMap((a) => EDGE_COMPARE_VERSIONS.map((b) => [a, b])),
+  ]
     .filter(([a, b]) => typeof a === 'string' && typeof b === 'string')
     .filter(([a, b]) => isVersion(a) && isVersion(b))
   writeJson('compare.json', uniqueBy(
