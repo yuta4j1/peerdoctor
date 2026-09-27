@@ -1,6 +1,6 @@
 # semver のテストデータ
 
-peerdoctor のバージョン・範囲の判定（`src/version.rs`）が、npm と同じ答えを返すかを確かめるためのデータ。
+peerdoctor のバージョン・範囲の判定（`src/version/`）が、npm と同じ答えを返すかを確かめるためのデータ。
 
 ## 期待値の出どころ
 
