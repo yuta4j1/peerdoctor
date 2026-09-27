@@ -9,7 +9,7 @@ pub fn check(package_instance: PackageInstance, target_package: TargetPackage) -
         .find(|requirement| requirement.package_name == target_package.name)?
         .clone();
 
-    if requirement.range.satisfies(target_package.version) {
+    if requirement.range.satisfies(&target_package.version) {
         return None;
     }
 
