@@ -62,6 +62,9 @@ const PACKAGES = {
   'bundled-dep': {
     '1.0.0': { peerDependencies: { next: '^15' } },
   },
+  'plugin-tag': {
+    '1.0.0': { peerDependencies: { next: 'latest' } },
+  },
 }
 
 const BASE_DEPENDENCIES = { next: '15.3.0', react: '18.2.0' }
@@ -134,6 +137,12 @@ const SCENARIOS = {
     lockfileVersion: 3,
     dependencies: { ...BASE_DEPENDENCIES, 'plugin-a': '2.1.0' },
     packageJson: { overrides: { react: '18.2.0' } },
+  },
+  // peer に dist-tag を書いたパッケージは npm 自身が peer の衝突で止まるので、peer の確認を省いて作る
+  unverified: {
+    lockfileVersion: 3,
+    dependencies: { ...BASE_DEPENDENCIES, 'plugin-a': '2.1.0', 'plugin-tag': '1.0.0' },
+    legacyPeerDeps: true,
   },
 }
 
@@ -209,7 +218,14 @@ function startRegistry (tarballs) {
 }
 
 async function generate (workDir, tarballs, scenarioName, scenario) {
-  const { lockfileVersion, dependencies, packageJson: extra = {}, files = {}, tarballs: copies = {} } = scenario
+  const {
+    lockfileVersion,
+    dependencies,
+    packageJson: extra = {},
+    files = {},
+    tarballs: copies = {},
+    legacyPeerDeps = false,
+  } = scenario
   const projectDir = path.join(workDir, 'projects', scenarioName)
   fs.mkdirSync(projectDir, { recursive: true })
   const packageJson = { name: `fixture-${scenarioName}`, version: '0.0.0', private: true, dependencies, ...extra }
@@ -231,6 +247,7 @@ async function generate (workDir, tarballs, scenarioName, scenario) {
     '--no-audit',
     '--no-fund',
     '--ignore-scripts',
+    ...(legacyPeerDeps ? ['--legacy-peer-deps'] : []),
   ], { cwd: projectDir })
 
   const outDir = path.join(OUT_DIR, scenarioName)

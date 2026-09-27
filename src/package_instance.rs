@@ -5,15 +5,25 @@ use crate::version::{Version, VersionRange};
 #[derive(Clone)]
 pub struct PeerRequirement {
     pub(crate) package_name: String,
-    pub(crate) range: VersionRange,
+    pub(crate) spec: PeerSpec,
     optional: bool,
 }
 
+#[derive(Clone)]
+pub enum PeerSpec {
+    Range(VersionRange),
+    NotARange(String),
+}
+
 impl PeerRequirement {
-    pub fn new(package_name: &str, range: VersionRange, optional: bool) -> Self {
+    pub fn new(package_name: &str, spec: &str, optional: bool) -> Self {
+        let spec = match VersionRange::parse(spec) {
+            Ok(range) => PeerSpec::Range(range),
+            Err(_) => PeerSpec::NotARange(spec.to_string()),
+        };
         Self {
             package_name: package_name.to_string(),
-            range,
+            spec,
             optional,
         }
     }
@@ -21,7 +31,11 @@ impl PeerRequirement {
 
 impl fmt::Display for PeerRequirement {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}: {}", self.package_name, self.range.as_str())?;
+        let spec = match &self.spec {
+            PeerSpec::Range(range) => range.as_str(),
+            PeerSpec::NotARange(text) => text,
+        };
+        write!(f, "{}: {spec}", self.package_name)?;
         if self.optional {
             f.write_str(" (optional)")?;
         }

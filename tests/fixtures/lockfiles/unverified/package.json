@@ -1,0 +1,11 @@
+{
+  "name": "fixture-unverified",
+  "version": "0.0.0",
+  "private": true,
+  "dependencies": {
+    "next": "15.3.0",
+    "react": "18.2.0",
+    "plugin-a": "2.1.0",
+    "plugin-tag": "1.0.0"
+  }
+}

@@ -35,7 +35,7 @@ Target: next 15.3.0 -> 16.3.0
 BLOCKERS (1)
   plugin-a@2.1.0 (node_modules/plugin-a)  peer next: ^14 || ^15
 
-Summary: 1 blocker
+Summary: 1 blocker, 0 unverified
 "
     );
 }
@@ -54,7 +54,7 @@ BLOCKERS (2)
   plugin-a@2.1.0 (node_modules/plugin-a)  peer next: ^14 || ^15
   plugin-c@1.0.0 (node_modules/plugin-c)  peer next: ^15
 
-Summary: 2 blockers
+Summary: 2 blockers, 0 unverified
 "
     );
 }
@@ -168,4 +168,33 @@ fn warns_when_package_json_cannot_be_read() {
 
     assert_eq!(output.status.code(), Some(1));
     assert!(stderr(&output).contains("warning: could not read package.json"));
+}
+
+#[test]
+fn reports_peer_specs_that_are_not_ranges_as_unverified() {
+    let output = peerdoctor(&["next@16.3.0", "--project", &fixture("unverified")]);
+
+    assert_eq!(output.status.code(), Some(1));
+    assert_eq!(
+        stdout(&output),
+        "\
+Target: next 15.3.0 -> 16.3.0
+
+BLOCKERS (1)
+  plugin-a@2.1.0 (node_modules/plugin-a)  peer next: ^14 || ^15
+
+UNVERIFIED (1)
+  plugin-tag@1.0.0 (node_modules/plugin-tag)  peer next: latest  (not a version range; npm treats it as a dist-tag, which peerdoctor cannot check)
+
+Summary: 1 blocker, 1 unverified
+"
+    );
+}
+
+#[test]
+fn exits_with_zero_when_only_unverified_remain() {
+    let output = peerdoctor(&["next@15.3.0", "--project", &fixture("unverified")]);
+
+    assert_eq!(output.status.code(), Some(0));
+    assert!(stdout(&output).contains("Summary: 0 blockers, 1 unverified\n"));
 }

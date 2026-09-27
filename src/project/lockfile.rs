@@ -5,7 +5,7 @@ use std::path::Path;
 use serde::Deserialize;
 
 use crate::package_instance::{PackageInstance, PeerRequirement};
-use crate::version::{Version, VersionParseError, VersionRange, VersionRangeParseError};
+use crate::version::{Version, VersionParseError};
 
 pub struct Lockfile {
     packages: BTreeMap<String, PackageInstance>,
@@ -160,21 +160,14 @@ impl RawPackage {
         let peer_requirements = self
             .peer_dependencies
             .iter()
-            .map(|(peer, range)| {
-                let range = VersionRange::parse(range).map_err(|source| {
-                    LockfileError::InvalidPeerRange {
-                        path: path.to_string(),
-                        peer: peer.clone(),
-                        source,
-                    }
-                })?;
+            .map(|(peer, spec)| {
                 let optional = self
                     .peer_dependencies_meta
                     .get(peer)
                     .is_some_and(|meta| meta.optional);
-                Ok(PeerRequirement::new(peer, range, optional))
+                PeerRequirement::new(peer, spec, optional)
             })
-            .collect::<Result<Vec<_>, LockfileError>>()?;
+            .collect();
 
         Ok(PackageInstance::new(
             path,
@@ -237,12 +230,6 @@ pub enum LockfileError {
         path: String,
         source: VersionParseError,
     },
-    #[error("{path}: peer {peer:?}: {source}")]
-    InvalidPeerRange {
-        path: String,
-        peer: String,
-        source: VersionRangeParseError,
-    },
 }
 
 #[cfg(test)]
@@ -254,6 +241,8 @@ mod tests {
         include_str!("../../tests/fixtures/lockfiles/basic-v2/package-lock.json");
     const NESTED: &str = include_str!("../../tests/fixtures/lockfiles/nested/package-lock.json");
     const SCOPED: &str = include_str!("../../tests/fixtures/lockfiles/scoped/package-lock.json");
+    const UNVERIFIED: &str =
+        include_str!("../../tests/fixtures/lockfiles/unverified/package-lock.json");
     const OVERRIDES: &str =
         include_str!("../../tests/fixtures/lockfiles/overrides/package-lock.json");
     const WORKSPACES: &str =
@@ -439,23 +428,10 @@ mod tests {
     }
 
     #[test]
-    fn rejects_a_peer_range_that_cannot_be_parsed() {
-        let result = Lockfile::parse(
-            r#"{
-                "lockfileVersion": 3,
-                "packages": {
-                    "": {},
-                    "node_modules/plugin": {
-                        "version": "1.0.0",
-                        "peerDependencies": { "next": "latest" }
-                    }
-                }
-            }"#,
+    fn keeps_peer_specs_that_are_not_ranges() {
+        assert!(
+            summarize(UNVERIFIED)
+                .contains(&"node_modules/plugin-tag plugin-tag@1.0.0 [next: latest]".to_string())
         );
-        assert!(matches!(
-            result,
-            Err(LockfileError::InvalidPeerRange { path, peer, .. })
-                if path == "node_modules/plugin" && peer == "next"
-        ));
     }
 }
