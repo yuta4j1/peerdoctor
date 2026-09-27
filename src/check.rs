@@ -1,7 +1,7 @@
 use std::fmt;
 
 use crate::blocker::Blocker;
-use crate::lockfile::Lockfile;
+use crate::project::Lockfile;
 use crate::resolver::resolve_peer;
 use crate::target_package::TargetPackage;
 use crate::version::Version;

@@ -116,3 +116,56 @@ fn exits_with_two_when_the_check_cannot_run() {
         );
     }
 }
+
+#[test]
+fn exits_with_two_on_unsupported_configurations() {
+    let cases = [
+        ("unsupported-workspaces", "npm workspaces"),
+        ("unsupported-link", "linked package"),
+        ("unsupported-file", "file: dependency"),
+        ("unsupported-alias", "npm alias"),
+        ("unsupported-bundled", "bundled dependencies"),
+    ];
+    for (name, reason) in cases {
+        let output = peerdoctor(&["next@16.3.0", "--project", &fixture(name)]);
+        assert_eq!(output.status.code(), Some(2), "{name}");
+        assert!(stdout(&output).is_empty(), "{name}");
+        let stderr = stderr(&output);
+        assert!(
+            stderr.contains("unsupported configuration:"),
+            "{name}: {stderr}"
+        );
+        assert!(stderr.contains(reason), "{name}: {stderr}");
+    }
+}
+
+#[test]
+fn warns_about_overrides_and_carries_on() {
+    let output = peerdoctor(&["next@16.3.0", "--project", &fixture("overrides")]);
+
+    assert_eq!(output.status.code(), Some(1));
+    assert!(stderr(&output).contains("warning: package.json declares overrides"));
+    assert!(stdout(&output).contains("BLOCKERS (1)\n"));
+}
+
+#[test]
+fn warns_when_package_json_cannot_be_read() {
+    let project =
+        std::env::temp_dir().join(format!("peerdoctor-no-manifest-{}", std::process::id()));
+    std::fs::create_dir_all(&project).expect("一時ディレクトリを作れる");
+    std::fs::copy(
+        format!("{}/package-lock.json", fixture("basic")),
+        project.join("package-lock.json"),
+    )
+    .expect("ロックファイルをコピーできる");
+
+    let output = peerdoctor(&[
+        "next@16.3.0",
+        "--project",
+        project.to_str().expect("UTF-8 のパス"),
+    ]);
+    std::fs::remove_dir_all(&project).expect("一時ディレクトリを消せる");
+
+    assert_eq!(output.status.code(), Some(1));
+    assert!(stderr(&output).contains("warning: could not read package.json"));
+}

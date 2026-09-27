@@ -50,7 +50,23 @@ const PACKAGES = {
   '@acme/next-plugin': {
     '1.0.0': { peerDependencies: { next: '^15' } },
   },
+  'local-tgz': {
+    '1.0.0': { peerDependencies: { next: '^15' } },
+  },
+  'bundle-host': {
+    '1.0.0': {
+      dependencies: { 'bundled-dep': '1.0.0' },
+      bundleDependencies: ['bundled-dep'],
+    },
+  },
+  'bundled-dep': {
+    '1.0.0': { peerDependencies: { next: '^15' } },
+  },
 }
+
+const BASE_DEPENDENCIES = { next: '15.3.0', react: '18.2.0' }
+
+const memberManifest = (name) => ({ name, version: '1.0.0', peerDependencies: { next: '^15' } })
 
 const SCENARIOS = {
   basic: {
@@ -90,6 +106,35 @@ const SCENARIOS = {
       '@acme/next-plugin': '1.0.0',
     },
   },
+  'unsupported-workspaces': {
+    lockfileVersion: 3,
+    dependencies: BASE_DEPENDENCIES,
+    packageJson: { workspaces: ['packages/*'] },
+    files: { 'packages/member/package.json': memberManifest('member') },
+  },
+  'unsupported-link': {
+    lockfileVersion: 3,
+    dependencies: { ...BASE_DEPENDENCIES, 'local-lib': 'file:./local-lib' },
+    files: { 'local-lib/package.json': memberManifest('local-lib') },
+  },
+  'unsupported-file': {
+    lockfileVersion: 3,
+    dependencies: { ...BASE_DEPENDENCIES, 'local-tgz': 'file:./local-tgz-1.0.0.tgz' },
+    tarballs: { 'local-tgz-1.0.0.tgz': 'local-tgz@1.0.0' },
+  },
+  'unsupported-alias': {
+    lockfileVersion: 3,
+    dependencies: { ...BASE_DEPENDENCIES, 'plugin-alias': 'npm:plugin-a@2.1.0' },
+  },
+  'unsupported-bundled': {
+    lockfileVersion: 3,
+    dependencies: { ...BASE_DEPENDENCIES, 'bundle-host': '1.0.0' },
+  },
+  overrides: {
+    lockfileVersion: 3,
+    dependencies: { ...BASE_DEPENDENCIES, 'plugin-a': '2.1.0' },
+    packageJson: { overrides: { react: '18.2.0' } },
+  },
 }
 
 const tarballFileName = (name, version) => `${name.split('/').pop()}-${version}.tgz`
@@ -104,6 +149,14 @@ async function packAll (workDir) {
       fs.writeFileSync(
         path.join(packageDir, 'package.json'),
         JSON.stringify({ name, version, ...manifest }, null, 2) + '\n')
+      for (const bundled of manifest.bundleDependencies ?? []) {
+        const bundledDir = path.join(packageDir, 'node_modules', bundled)
+        fs.mkdirSync(bundledDir, { recursive: true })
+        const bundledVersion = manifest.dependencies[bundled]
+        fs.writeFileSync(
+          path.join(bundledDir, 'package.json'),
+          JSON.stringify({ name: bundled, version: bundledVersion, ...PACKAGES[bundled][bundledVersion] }, null, 2) + '\n')
+      }
       const { stdout } = await execFile('npm', ['pack', '--json', '--pack-destination', workDir], {
         cwd: packageDir,
       })
@@ -155,11 +208,19 @@ function startRegistry (tarballs) {
   return new Promise((resolve) => server.listen(PORT, () => resolve(server)))
 }
 
-async function generate (workDir, scenarioName, { lockfileVersion, dependencies }) {
+async function generate (workDir, tarballs, scenarioName, scenario) {
+  const { lockfileVersion, dependencies, packageJson: extra = {}, files = {}, tarballs: copies = {} } = scenario
   const projectDir = path.join(workDir, 'projects', scenarioName)
   fs.mkdirSync(projectDir, { recursive: true })
-  const packageJson = { name: `fixture-${scenarioName}`, version: '0.0.0', private: true, dependencies }
+  const packageJson = { name: `fixture-${scenarioName}`, version: '0.0.0', private: true, dependencies, ...extra }
   fs.writeFileSync(path.join(projectDir, 'package.json'), JSON.stringify(packageJson, null, 2) + '\n')
+  for (const [file, content] of Object.entries(files)) {
+    fs.mkdirSync(path.dirname(path.join(projectDir, file)), { recursive: true })
+    fs.writeFileSync(path.join(projectDir, file), JSON.stringify(content, null, 2) + '\n')
+  }
+  for (const [file, spec] of Object.entries(copies)) {
+    fs.writeFileSync(path.join(projectDir, file), tarballs.get(spec).data)
+  }
 
   await execFile('npm', [
     'install',
@@ -186,7 +247,7 @@ async function main () {
   const server = await startRegistry(tarballs)
   try {
     for (const [name, scenario] of Object.entries(SCENARIOS)) {
-      await generate(workDir, name, scenario)
+      await generate(workDir, tarballs, name, scenario)
     }
   } finally {
     server.close()

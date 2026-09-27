@@ -1,5 +1,5 @@
-use crate::lockfile::Lockfile;
 use crate::package_instance::PackageInstance;
+use crate::project::Lockfile;
 
 // npm と同じく、まず自分の node_modules を見て、無ければ親の node_modules へ、ルートまでたどる
 pub(crate) fn resolve_peer<'a>(

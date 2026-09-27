@@ -1,0 +1,10 @@
+{
+  "name": "fixture-unsupported-alias",
+  "version": "0.0.0",
+  "private": true,
+  "dependencies": {
+    "next": "15.3.0",
+    "react": "18.2.0",
+    "plugin-alias": "npm:plugin-a@2.1.0"
+  }
+}

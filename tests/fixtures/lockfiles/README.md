@@ -25,5 +25,13 @@ npm 11 で作成した。ポート 4873 が空いている必要がある。生�
 | `basic-v2/` | `basic` と同じ構成を lockfileVersion 2 で | v2 と v3 で同じ結果になるか |
 | `nested/` | ルートに `next@15.3.0`。`legacy-host` の下に `next@14.2.0` と、`next ^14` を peer に持つ `plugin-old` がネストする | ネストした同名パッケージがあっても、ルートの `next` を指す peer だけを拾えるか |
 | `scoped/` | `@acme/next-plugin` が `next` を peer に持つ | スコープ付きの名前のパスを扱えるか |
+| `unsupported-workspaces/` | npm workspaces（`packages/member`） | 未対応の構成として拒否するか |
+| `unsupported-link/` | `file:./local-lib`（ディレクトリへのリンク） | 同上 |
+| `unsupported-file/` | `file:./local-tgz-1.0.0.tgz`（ローカルの tarball） | 同上 |
+| `unsupported-alias/` | `npm:plugin-a@2.1.0`（エイリアス） | 同上 |
+| `unsupported-bundled/` | `bundleDependencies` を持つ `bundle-host` | 同上 |
+| `overrides/` | package.json の `overrides` | 警告して続行するか（overrides はロックファイルには記録されない） |
+
+git 依存のロックファイルは、作るのに git サーバーが要るので、テストの中で JSON を手書きしている。
 
 パッケージの中身（バージョン、依存、peer）は `generate.js` の `PACKAGES` に、各シナリオの依存は `SCENARIOS` にある。

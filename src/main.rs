@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use std::process::ExitCode;
 
 use clap::Parser;
-use peerdoctor::{Lockfile, Report, TargetPackage, check};
+use peerdoctor::{Overrides, Project, Report, TargetPackage, check};
 
 /// Lists what blocks an npm project from moving a package to a given version.
 #[derive(Parser)]
@@ -37,6 +37,16 @@ fn main() -> ExitCode {
 
 fn run(args: &Args) -> Result<Report, Box<dyn Error>> {
     let target = TargetPackage::parse(&args.target)?;
-    let lockfile = Lockfile::read(&args.project)?;
-    Ok(check(&lockfile, &target)?)
+    let project = Project::read(&args.project)?;
+    match project.overrides() {
+        Overrides::Declared => eprintln!(
+            "warning: package.json declares overrides; the result is based on the locked tree \
+             and may differ from what npm resolves with the overrides applied"
+        ),
+        Overrides::Unknown => {
+            eprintln!("warning: could not read package.json, so overrides were not checked")
+        }
+        Overrides::NotDeclared => {}
+    }
+    Ok(check(project.lockfile(), &target)?)
 }
