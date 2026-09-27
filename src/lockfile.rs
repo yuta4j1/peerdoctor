@@ -34,6 +34,10 @@ impl Lockfile {
     pub fn packages(&self) -> impl Iterator<Item = &PackageInstance> {
         self.packages.values()
     }
+
+    pub(crate) fn get(&self, path: &str) -> Option<&PackageInstance> {
+        self.packages.get(path)
+    }
 }
 
 #[derive(Deserialize)]

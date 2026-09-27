@@ -2,6 +2,7 @@ mod blocker;
 mod check;
 mod lockfile;
 mod package_instance;
+mod resolver;
 mod target_package;
 mod version;
 
