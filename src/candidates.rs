@@ -21,6 +21,7 @@ pub struct Candidates {
 enum Acceptance {
     Accepts,
     NoPeerDeclared,
+    NotYetDeclared,
     Rejects,
     NotARange,
 }
@@ -38,13 +39,14 @@ struct Entry<'a> {
 
 pub(crate) fn resolve(packument: &Packument, peer: &str, target: &Version) -> Resolution {
     let include_prerelease = target.is_prerelease();
+    let first_declared = first_declared(packument, peer);
     let entries: Vec<Entry> = packument
         .versions()
         .iter()
         .filter(|published| include_prerelease || !published.version.is_prerelease())
         .map(|published| Entry {
             published,
-            acceptance: acceptance(published, peer, target),
+            acceptance: acceptance(published, peer, target, first_declared),
         })
         .collect();
 
@@ -132,13 +134,37 @@ pub(crate) fn resolve(packument: &Packument, peer: &str, target: &Version) -> Re
     })
 }
 
-fn acceptance(published: &PublishedVersion, peer: &str, target: &Version) -> Acceptance {
+// react-dom の 0.0.0-experimental-* のように、並び順で先頭に来る prerelease があるので安定版だけで見る
+fn first_declared<'a>(packument: &'a Packument, peer: &str) -> Option<&'a Version> {
+    packument
+        .versions()
+        .iter()
+        .filter(|published| !published.version.is_prerelease())
+        .find(|published| {
+            published
+                .peer_requirements
+                .iter()
+                .any(|requirement| requirement.package_name == peer)
+        })
+        .map(|published| &published.version)
+}
+
+fn acceptance(
+    published: &PublishedVersion,
+    peer: &str,
+    target: &Version,
+    first_declared: Option<&Version>,
+) -> Acceptance {
     let Some(requirement) = published
         .peer_requirements
         .iter()
         .find(|requirement| requirement.package_name == peer)
     else {
-        return Acceptance::NoPeerDeclared;
+        // 宣言をやめた版は制約なしとして受け入れるが、宣言し始める前の版は peer との関係が分からないので勧めない
+        return match first_declared {
+            Some(first) if published.version > *first => Acceptance::NoPeerDeclared,
+            _ => Acceptance::NotYetDeclared,
+        };
     };
     match &requirement.spec {
         PeerSpec::Range(range) if range.satisfies(target) => Acceptance::Accepts,
@@ -259,6 +285,7 @@ mod tests {
         let registry = FixtureRegistry::new();
         for package in ["plugin-a", "plugin-c", "plugin-flaky", "@acme/next-plugin"] {
             let packument = registry.packument(package).expect("テストデータにある");
+            let first_declared = first_declared(&packument, "next");
             for target in ["14.2.0", "15.3.0", "16.3.0", "17.0.0"] {
                 let target = Version::parse(target).expect("読めるバージョン");
                 let Resolution::Satisfiable(candidates) = resolve(&packument, "next", &target)
@@ -270,7 +297,7 @@ mod tests {
                     if published.version.is_prerelease() || published.deprecated.is_some() {
                         continue;
                     }
-                    let accepts = acceptance(published, "next", &target).accepts();
+                    let accepts = acceptance(published, "next", &target, first_declared).accepts();
                     assert_eq!(
                         range.satisfies(&published.version),
                         accepts,
@@ -281,6 +308,69 @@ mod tests {
                 }
             }
         }
+    }
+
+    #[test]
+    fn does_not_suggest_versions_from_before_the_peer_was_declared() {
+        let packument = Packument::parse(
+            "example",
+            r#"{
+                "versions": {
+                    "0.1.0": {},
+                    "0.2.0": { "peerDependencies": { "react": "^18" } },
+                    "1.0.0": { "peerDependencies": { "next": "^15" } },
+                    "2.0.0": { "peerDependencies": { "next": "^16" } },
+                    "3.0.0": {}
+                }
+            }"#,
+        )
+        .expect("読める");
+        let resolution = resolve(
+            &packument,
+            "next",
+            &Version::parse("16.3.0").expect("読める"),
+        );
+        assert_eq!(
+            describe(&resolution),
+            ">=2.0.0 | minimum 2.0.0 / newest 3.0.0 / latest - | no peer on next declared: 3.0.0"
+        );
+    }
+
+    #[test]
+    fn finds_the_first_declaration_among_stable_versions() {
+        let packument = Packument::parse(
+            "example",
+            r#"{
+                "versions": {
+                    "0.0.0-experimental.1": { "peerDependencies": { "next": "*" } },
+                    "0.1.0": {},
+                    "1.0.0": { "peerDependencies": { "next": "^16" } }
+                }
+            }"#,
+        )
+        .expect("読める");
+        let resolution = resolve(
+            &packument,
+            "next",
+            &Version::parse("16.3.0").expect("読める"),
+        );
+        assert_eq!(
+            describe(&resolution),
+            ">=1.0.0 | minimum 1.0.0 / newest 1.0.0 / latest - | "
+        );
+    }
+
+    #[test]
+    fn reports_a_dead_end_when_no_version_declares_the_peer() {
+        let packument =
+            Packument::parse("example", r#"{ "versions": { "1.0.0": {}, "2.0.0": {} } }"#)
+                .expect("読める");
+        let resolution = resolve(
+            &packument,
+            "next",
+            &Version::parse("16.3.0").expect("読める"),
+        );
+        assert_eq!(describe(&resolution), "dead end (latest -)");
     }
 
     #[test]
